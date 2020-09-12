@@ -4,7 +4,6 @@ using System;
 using KModkit;
 using UnityEngine;
 using Rand = UnityEngine.Random;
-using UnityEngine.EventSystems;
 
 public class WarGamesModuleScript : MonoBehaviour {
 
@@ -22,7 +21,8 @@ public class WarGamesModuleScript : MonoBehaviour {
 		Start,
 		Busy,
 		Waiting,
-		Input
+		Input,
+		Solved
     }
 
 	//sfx
@@ -117,13 +117,14 @@ public class WarGamesModuleScript : MonoBehaviour {
 
 	void ArrowPress(KMSelectable Arrow)
     {
-		if (mStatus == Status.Waiting || mStatus == Status.Busy) return;
+		if (mStatus != Status.Start && mStatus != Status.Input) return;
 		int arrowIndex = Array.IndexOf(DigitArrows, Arrow);
 		int arrowPos = arrowIndex % 2;
 		int arrowPlace = ((arrowPos == 1) ? arrowIndex - 1 : arrowIndex) / 2;
 
 		activeDigits[arrowPlace] = false;
-		Arrow.AddInteractionPunch(0.1f);
+		Arrow.AddInteractionPunch(0.2f);
+		Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
 		Digits[arrowPlace].text = ToChar(Digits[arrowPlace].text, (arrowPos == 0 ? 1 : -1));
     }
 
@@ -134,7 +135,8 @@ public class WarGamesModuleScript : MonoBehaviour {
 		int arrowPos = arrowIndex % 2;
 		int arrowPlace = ((arrowPos == 1) ? arrowIndex - 1 : arrowIndex) / 2;
 
-		Arrow.AddInteractionPunch(0.1f);
+		Arrow.AddInteractionPunch(0.2f);
+		Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
 		int toDisplay;
 		if (!int.TryParse(ConfirmDigits[arrowPlace].text, out toDisplay))
 			DebugLog("fuck");
@@ -155,7 +157,9 @@ public class WarGamesModuleScript : MonoBehaviour {
 
 	IEnumerator BeginModule()
     {
-		if (mStatus == Status.Busy || mStatus == Status.Waiting) yield break;
+		if (mStatus != Status.Start && mStatus != Status.Input) yield break;
+		ReceiveButton.AddInteractionPunch(0.2f);
+		Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
 		StartCoroutine(AudioHandler((Digits[3].text == "B" && Digits[4].text == "E" && Digits[5].text == "T" && Digits[6].text == "A") || mStatus == Status.Input));
     }
 
@@ -252,7 +256,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 		string build = "The Authentication numbers are ";
 		for (int i = 0; i < 6; i++)
 			build += logAuth[i].ToString() + (i == 4 ? " and " : ", ");
-		Log(build + "which totals up to " + (outAuthCode % 10000).ToString("0000"));
+		Log(build + "which totals up to " + (outAuthCode % 10000).ToString("0000") + ".");
 		if (Rand.Range(0, 3) == 2)
 		{
 			outAuthCode += Rand.Range(1, 9999);
@@ -272,7 +276,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 		correctParts[0] = Bomb.GetIndicators().Count() == 0 ? checkParts[0] == "MRP" : Bomb.GetIndicators().Any(str => str == checkParts[0]);
 		correctParts[1] = Bomb.GetSerialNumber().Contains(checkParts[1][0]) && Bomb.GetSerialNumber().Contains(checkParts[1][1]) && Bomb.GetSerialNumber().Contains(checkParts[1][2]);
 		Log("The first part of the message is " + (correctParts[0] ? "valid" : "invalid") + ", and the second part of the message is " + (correctParts[1] ? "valid." : "invalid."));
-		Log("The Silo ID is " + siloID);
+		Log("The Silo ID is " + siloID + ".");
 		if (!correctParts[2])
 		{
 			correctResponse = ResponseType.Jamming;
@@ -300,11 +304,18 @@ public class WarGamesModuleScript : MonoBehaviour {
 		}
 		else
 			Log("Something went wrong, no solution was identified.");
+		DebugLog(CalculateSolution());
 	}
 
 	IEnumerator VerifySolution()
     {
-		if (mStatus != Status.Input) yield break;
+		if (mStatus != Status.Input)
+        {
+			DebugLog(CalculateSolution());
+			yield break;
+        }
+		SendButton.AddInteractionPunch(0.2f);
+		Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
 		bool correct = true;
 		string input = Digits[4].text + Digits[5].text + Digits[6].text;
 		Log("You sent Silo ID: " + Digits[0].text + Digits[1].text + Digits[2].text + " | Message: " + Digits[3].text + input + " | Location: " + Digits[7].text + Digits[8].text + Digits[9].text + ".");
@@ -379,7 +390,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 			for (int i = 0; i < 3; i++)
 				logAuth2[i] = ToNum(answer[i].ToString(), 0) * ToNum(location[i].ToString(), 0);
 		ansAuthCode = logAuth2[0] + logAuth2[1] + logAuth2[2];
-		Log("With your type " + (correctColor == MessageColor.Green ? "Green-Alpha" : correctColor == MessageColor.Yellow ? "Yellow-Alpha" : "Red-Alpha") + " message, your sums were " + logAuth2[0].ToString() + ", " + logAuth2[1].ToString() + " and " + logAuth2[2].ToString() + ", which totals up to " + ansAuthCode.ToString("0000"));
+		Log("With your type " + (correctColor == MessageColor.Green ? "Green-Alpha" : correctColor == MessageColor.Yellow ? "Yellow-Alpha" : "Red-Alpha") + " message, your sums were " + logAuth2[0].ToString() + ", " + logAuth2[1].ToString() + " and " + logAuth2[2].ToString() + ", which totals up to " + ansAuthCode.ToString("0000") + ".");
 		if (ansAuthCode.ToString("0000") != ConfirmDigits[0].text + ConfirmDigits[1].text + ConfirmDigits[2].text + ConfirmDigits[3].text)
         {
 			correct = false;
@@ -387,7 +398,10 @@ public class WarGamesModuleScript : MonoBehaviour {
         }
 
 		if (correct)
+        {
+			mStatus = Status.Solved;
 			Module.HandlePass();
+		}
 		else
 			StartCoroutine(StrikeRoutine());
     }
@@ -399,6 +413,50 @@ public class WarGamesModuleScript : MonoBehaviour {
 		Module.HandleStrike();
 		mStatus = Status.Start;
 		CalculateConditions();
+	}
+
+	string CalculateSolution()
+    {
+		int[] usedCiphers = new int[2] { ToNum(outMessages[0][0].ToString(), 0) % 3, ToNum(outMessages[2][0].ToString(), 0) % 3 };
+		int cipher = !usedCiphers.Contains(0) ? 0 : !usedCiphers.Contains(1) ? 1 : 2;
+		string[] possible = new string[2] { Encryptor("" + outMessages[1][1] + outMessages[1][2] + outMessages[1][3], cipher.ToString(), true), Encryptor("" + outMessages[3][1] + outMessages[3][2] + outMessages[3][3], cipher.ToString(), true) };
+		string answer = "";
+		string secondary = "";
+		switch (correctResponse)
+		{
+			case ResponseType.Either:
+				answer = possible[0];
+				secondary = possible[1];
+				break;
+			case ResponseType.First:
+				answer = possible[0];
+				secondary = possible[1];
+				break;
+			case ResponseType.Second:
+				answer = possible[1];
+				secondary = possible[0];
+				break;
+			case ResponseType.Jamming:
+				answer = "" + possible[0][0] + possible[1][1] + possible[0][2];
+				secondary = "" + possible[1][0] + possible[0][1] + possible[1][2];
+				break;
+			case ResponseType.Error:
+				answer = "" + possible[1][0] + possible[0][1] + possible[1][2];
+				secondary = "" + possible[0][0] + possible[1][1] + possible[0][2];
+				break;
+		}
+		string message = cipher.ToString() + answer;
+		string location= ToChar((Bomb.GetSolvableModuleNames().Count() % 36).ToString(), 0) + ToChar(((Bomb.GetSolvableModuleNames().Count() - Bomb.GetSolvedModuleNames().Count()) % 36).ToString(), 0) + ToChar((Bomb.GetSolvedModuleNames().Count() % 36).ToString(), 0);
+		int[] logAuth2 = new int[3] { 0, 0, 0 };
+		if (correctColor == MessageColor.Green || correctColor == MessageColor.Yellow)
+			for (int i = 0; i < 3; i++)
+				logAuth2[i] = ToNum(answer[i].ToString(), 0) * ToNum(secondary[i].ToString(), 0);
+		else
+			for (int i = 0; i < 3; i++)
+				logAuth2[i] = ToNum(answer[i].ToString(), 0) * ToNum(location[i].ToString(), 0);
+		ansAuthCode = logAuth2[0] + logAuth2[1] + logAuth2[2];
+		Log("With " + Bomb.GetSolvedModuleNames().Count().ToString() + " solved module(s), your solution could have been Silo: " + siloID.ToString() + " | Message: " + message + " | Location: " + location + " | Authentication Code: " + ansAuthCode.ToString("0000") + ".");
+		return siloID.ToString() + message + location + ansAuthCode.ToString("0000");
 	}
 
 	string Encryptor (string message, string cipher, bool encrypt)
@@ -529,6 +587,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 				if (mStatus != Status.Input) yield break;
 				yield return null;
 				SendButton.OnInteract();
+				yield return "strike";
 			}
         }
 		else if (parameters.Count() == 2)
@@ -596,7 +655,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 					parameters[1] = parameters[1].PadLeft(4, '0');
 					for (int i = 0; i < 4; i++)
 					{
-						bool forward = Math.Abs(Array.IndexOf(Numbers.ToCharArray(), ConfirmDigits[i].text[0]) - Array.IndexOf(Numbers.ToCharArray(), parameters[1][i])) < 18;
+						bool forward = Math.Abs(Array.IndexOf(Numbers.ToCharArray(), ConfirmDigits[i].text[0]) - Array.IndexOf(Numbers.ToCharArray(), parameters[1][i])) < 5;
 						bool reverse = Array.IndexOf(Numbers.ToCharArray(), ConfirmDigits[i].text[0]) > Array.IndexOf(Numbers.ToCharArray(), parameters[1][i]);
 						while (ConfirmDigits[i].text[0] != parameters[1][i])
 						{
@@ -607,6 +666,35 @@ public class WarGamesModuleScript : MonoBehaviour {
 				}
 			}
         }
+		yield break;
+    }
+
+	IEnumerator TwitchHandleForcedSolve()
+    {
+		string answer = CalculateSolution();
+		mStatus = Status.Input;
+		for (int i = 0; i < 10; i++)
+        {
+			DigitArrows[2 * i].OnInteract();
+			bool forward = Math.Abs(Array.IndexOf(AlphabetandNumbers.ToCharArray(), Digits[i].text[0]) - Array.IndexOf(AlphabetandNumbers.ToCharArray(), answer[i])) < 18;
+			bool reverse = Array.IndexOf(AlphabetandNumbers.ToCharArray(), Digits[i].text[0]) > Array.IndexOf(AlphabetandNumbers.ToCharArray(), answer[i]);
+			while (Digits[i].text[0] != answer[i])
+			{
+				DigitArrows[2 * i + (forward ^ reverse ? 0 : 1)].OnInteract();
+				yield return new WaitForSeconds(0.1f);
+			}
+		}
+		for (int i = 0; i < 4; i++)
+        {
+			bool forward = Math.Abs(Array.IndexOf(Numbers.ToCharArray(), ConfirmDigits[i].text[0]) - Array.IndexOf(Numbers.ToCharArray(), answer[i + 10])) < 5;
+			bool reverse = Array.IndexOf(Numbers.ToCharArray(), ConfirmDigits[i].text[0]) > Array.IndexOf(Numbers.ToCharArray(), answer[i + 10]);
+			while (ConfirmDigits[i].text[0] != answer[i + 10])
+			{
+				ConfirmationArrows[2 * i + (forward ^ reverse ? 0 : 1)].OnInteract();
+				yield return new WaitForSeconds(0.1f);
+			}
+		}
+		SendButton.OnInteract();
 		yield break;
     }
 }
