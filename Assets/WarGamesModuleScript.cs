@@ -4,6 +4,7 @@ using System;
 using KModkit;
 using UnityEngine;
 using Rand = UnityEngine.Random;
+using UnityEngine.EventSystems;
 
 public class WarGamesModuleScript : MonoBehaviour {
 
@@ -56,7 +57,9 @@ public class WarGamesModuleScript : MonoBehaviour {
 		Yellow, 
 		Green
     }
+	private readonly string Numbers = "0123456789";
 	private readonly string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	private readonly string AlphabetandNumbers = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 #pragma warning disable IDE0044 
 	private bool[] correctParts = new bool[3] { false, false, false }; //in order, they are 1st part, 2nd part, authenication
 	private string[] outMessages = new string[4] { "", "", "", "" }; //in order they are 1st part end, dec, 2nd part end, dec
@@ -508,5 +511,102 @@ public class WarGamesModuleScript : MonoBehaviour {
 		activeDigits = new bool[14] { true, true, true, true, true, true, true, true, true, true, true, true, true, true };
 		mStatus = Status.Input;
 		//Audio.PlaySound("")
+    }
+
+	IEnumerator ProcessTwitchCommand(string command)
+    {
+		string[] parameters = command.ToUpperInvariant().Trim().Split(' ').ToArray();
+		if (parameters.Count() == 1)
+        {
+			if (parameters[0] == "RECEIVE")
+            {
+				if (mStatus == Status.Busy || mStatus == Status.Waiting) yield break;
+				yield return null;
+				ReceiveButton.OnInteract();
+            }
+			else if (parameters[0] == "SEND")
+            {
+				if (mStatus != Status.Input) yield break;
+				yield return null;
+				SendButton.OnInteract();
+			}
+        }
+		else if (parameters.Count() == 2)
+        {
+			if (parameters[0] == "SILO")
+            {
+				if (mStatus == Status.Waiting || mStatus == Status.Busy) yield break;
+				if (parameters[1].Length == 3 && parameters[1].All(x => AlphabetandNumbers.Contains(x)))
+                {
+					yield return null;
+					for (int i = 0; i < 3; i++)
+                    {
+						bool forward = Math.Abs(Array.IndexOf(AlphabetandNumbers.ToCharArray(), Digits[i].text[0]) - Array.IndexOf(AlphabetandNumbers.ToCharArray(), parameters[1][i])) < 18;
+						bool reverse = Array.IndexOf(AlphabetandNumbers.ToCharArray(), Digits[i].text[0]) > Array.IndexOf(AlphabetandNumbers.ToCharArray(), parameters[1][i]);
+						while (Digits[i].text[0] != parameters[1][i])
+						{
+							DigitArrows[2 * i + (forward ^ reverse ? 0 : 1)].OnInteract();
+							yield return new WaitForSeconds(0.1f);
+						}
+                    }
+                }
+            }
+			else if (parameters[0] == "MESSAGE")
+            {
+				if (mStatus == Status.Waiting || mStatus == Status.Busy) yield break;
+				if (parameters[1].Length == 4 && parameters[1].All(x => AlphabetandNumbers.Contains(x)))
+				{
+					yield return null;
+					for (int i = 3; i < 7; i++)
+					{
+						bool forward = Math.Abs(Array.IndexOf(AlphabetandNumbers.ToCharArray(), Digits[i].text[0]) - Array.IndexOf(AlphabetandNumbers.ToCharArray(), parameters[1][i - 3])) < 18;
+						bool reverse = Array.IndexOf(AlphabetandNumbers.ToCharArray(), Digits[i].text[0]) > Array.IndexOf(AlphabetandNumbers.ToCharArray(), parameters[1][i - 3]);
+						while (Digits[i].text[0] != parameters[1][i - 3])
+						{
+							DigitArrows[2 * i + (forward ^ reverse ? 0 : 1)].OnInteract();
+							yield return new WaitForSeconds(0.1f);
+						}
+					}
+				}
+			}
+			else if (parameters[0] == "LOCATION")
+            {
+				if (mStatus == Status.Waiting || mStatus == Status.Busy) yield break;
+				if (parameters[1].Length == 3 && parameters[1].All(x => AlphabetandNumbers.Contains(x)))
+				{
+					yield return null;
+					for (int i = 7; i < 10; i++)
+					{
+						bool forward = Math.Abs(Array.IndexOf(AlphabetandNumbers.ToCharArray(), Digits[i].text[0]) - Array.IndexOf(AlphabetandNumbers.ToCharArray(), parameters[1][i - 7])) < 18;
+						bool reverse = Array.IndexOf(AlphabetandNumbers.ToCharArray(), Digits[i].text[0]) > Array.IndexOf(AlphabetandNumbers.ToCharArray(), parameters[1][i - 7]);
+						while (Digits[i].text[0] != parameters[1][i - 7])
+						{
+							DigitArrows[2 * i + (forward ^ reverse ? 0 : 1)].OnInteract();
+							yield return new WaitForSeconds(0.1f);
+						}
+					}
+				}
+			}
+			else if (parameters[0] == "AUTH" || parameters[0] == "AUTHENTICATION")
+            {
+				if (mStatus != Status.Input) yield break;
+				if (parameters[1].Length < 5 && parameters[1].All(x => Numbers.Contains(x)))
+				{
+					yield return null;
+					parameters[1] = parameters[1].PadLeft(4, '0');
+					for (int i = 0; i < 4; i++)
+					{
+						bool forward = Math.Abs(Array.IndexOf(Numbers.ToCharArray(), ConfirmDigits[i].text[0]) - Array.IndexOf(Numbers.ToCharArray(), parameters[1][i])) < 18;
+						bool reverse = Array.IndexOf(Numbers.ToCharArray(), ConfirmDigits[i].text[0]) > Array.IndexOf(Numbers.ToCharArray(), parameters[1][i]);
+						while (ConfirmDigits[i].text[0] != parameters[1][i])
+						{
+							ConfirmationArrows[2 * i + (forward ^ reverse ? 0 : 1)].OnInteract();
+							yield return new WaitForSeconds(0.1f);
+						}
+					}
+				}
+			}
+        }
+		yield break;
     }
 }
