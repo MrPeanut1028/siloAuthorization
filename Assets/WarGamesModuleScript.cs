@@ -28,8 +28,8 @@ public class WarGamesModuleScript : MonoBehaviour {
 	//sfx
 	public AudioClip[] MouseTrapSounds;
 	public AudioClip[] MouseTrapStarts;
-	public AudioClip[] BlackHoleSounds;
-	public AudioClip[] BlackHoleStarts;
+	public AudioClip[] GreyGooseSounds;
+	public AudioClip[] GreyGooseStarts;
 
 	//buttons
 	public KMSelectable ReceiveButton;
@@ -160,7 +160,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 		if (mStatus != Status.Start && mStatus != Status.Input) yield break;
 		ReceiveButton.AddInteractionPunch(0.2f);
 		Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
-		StartCoroutine(AudioHandler((Digits[3].text == "B" && Digits[4].text == "E" && Digits[5].text == "T" && Digits[6].text == "A") || mStatus == Status.Input));
+		StartCoroutine(AudioHandler(true || mStatus == Status.Input));
     }
 
 	string ToChar(string input, int shift)
@@ -539,7 +539,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 		}
 		else yield return new WaitForSeconds(30.0f);
         int VoiceIndex = Rand.Range(0, 2);
-		if (true) //MouseTrap
+		if (VoiceIndex == 0) //MouseTrap
         {
 			Audio.PlaySoundAtTransform(MouseTrapStarts[correctColor == MessageColor.Green ? 2 : correctColor == MessageColor.Yellow ? 3 : 4].name, transform);
 			yield return new WaitForSeconds(8.0f);
@@ -565,6 +565,32 @@ public class WarGamesModuleScript : MonoBehaviour {
 				yield return new WaitForSeconds(0.8f);
 			}
 
+		}
+		else //GreyGoose
+        {
+			Audio.PlaySoundAtTransform(GreyGooseStarts[correctColor == MessageColor.Green ? 2 : correctColor == MessageColor.Yellow ? 3 : 4].name, transform);
+			yield return new WaitForSeconds(10.0f);
+			Audio.PlaySoundAtTransform(GreyGooseStarts[1].name, transform);
+			yield return new WaitForSeconds(2.4f);
+			for (int i = 0; i < 4; i++)
+			{
+				Audio.PlaySoundAtTransform(GreyGooseSounds[ToNum(outMessages[0][i].ToString(), 0)].name, transform);
+				yield return new WaitForSeconds(0.8f);
+			}
+			yield return new WaitForSeconds(0.2f);
+			for (int i = 0; i < 4; i++)
+			{
+				Audio.PlaySoundAtTransform(GreyGooseSounds[ToNum(outMessages[2][i].ToString(), 0)].name, transform);
+				yield return new WaitForSeconds(0.8f);
+			}
+			Audio.PlaySoundAtTransform(GreyGooseStarts[0].name, transform);
+			yield return new WaitForSeconds(1.4f);
+			for (int i = 0; i < 4; i++)
+			{
+
+				Audio.PlaySoundAtTransform(GreyGooseSounds[int.Parse(outAuthCode.ToString("0000")[i].ToString())].name, transform);
+				yield return new WaitForSeconds(0.8f);
+			}
 		}
 		activeDigits = new bool[14] { true, true, true, true, true, true, true, true, true, true, true, true, true, true };
 		mStatus = Status.Input;
