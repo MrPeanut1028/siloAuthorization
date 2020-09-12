@@ -30,35 +30,22 @@
               <b>Note: All calculations are assumed to be in base 36, meaning 0-9 & A-Z, unless noted otherwise.</b></p>
 
                 <h3>Received Message</h3>
+              After you press the receive button, an encrypted message will be spoken to the defuser after 20% - 40% of the bomb's remaining time has passed, or a minimum of 30 seconds. You may repeat the message as many times as you would like, still waiting 30 seconds after the button is pressed. If you strike, you will be given a new message.
                 <ul>
-                    <li>After you press the receive button, an encrypted message will be spoken to the defuser after 20% - 40% of the bomb's reamining time has passed, or a minimum of 30 seconds. You may repeat the message as many times as you would like, still waiting 30 seconds after the button is pressed. If you strike, you will be given a new message.</li>
-                    <li>The message contains two parts, along with an Authentication Code.
-                        <ul>
-                            <li>The first letter of a part indicates how the following three letters were encrypted. See "Encryption" for how to decrypt the individual parts.</li>
-                            <li>The Authentication Code verifies the decrypted message. See "Authentication" for how to calculate the code, with your offset being the serial number.</li>
-                        </ul>
-                    </li>
-                  <h4>Message Verification</h4>
+                  <h4>Step 1: Decryption</h4>
+                    <li>The first letter of a part indicates how the following three letters were encrypted. Consider only the following three letters of each part to be the message. See "Encryption" for how to decrypt the individual parts.</li>
+                  <h4>Step 2: Authentication</h4>
+                  <li>The Authentication Code verifies the decrypted message. See "Authentication" for how to calculate the code, with your offset being the serial number.</li>
+                  <h4>Step 3: Verification</h4>
+                  <li>Each of these parts (the first and second part of the message, as well as the Authentication Code) can be individually valid.
                         <ul>
                             <li>The first part, decrypted, is valid if it matches an indicator present on the bomb. If there are no indicators, use MRP.</li>
                             <li>The second part, decrypted, is valid if each individual character is contained in the serial number.</li>
                           	<li>The Authentication Code, in base 10, is valid if it matches what is given. </li>
-                        </ul>
+                        </ul></li>
                 </ul>
-
-                <h3>Response Message</h3>
-                <ul>
-                    <li>After deciphering and verifying the message received, you must calculate the message to be sent.</li>
-                    <li>The message will contain a Silo ID, and encrypted response code, a Launch Location, and an Authentication Code.
-                  		<ul>
-                    <li>The Silo ID contains three digits in base 36, which are the number of battery holders, number of batteries, and number of port plates, each modulo 36.</li>
-                    <li>The Launch Location contains three digits in base 36, which are the number of solvable modules, unsolved modules, and solved modules, each modulo 36. This is calculated when your response message is sent.</li>
-                      </ul></li>
-                </ul>
-
-                
             </div>
-            <div class="page-footer relative-footer">Page 1 of 2</div>
+            <div class="page-footer relative-footer">Page 1 of 3</div>
         </div>
         <div class="page page-bg-02">
             <div class="page-header">
@@ -66,15 +53,31 @@
                 <span class="page-header-section-title">Silo Authorization</span>
             </div>
             <div class="page-content">
-              	<ul><ul>
+              <h3>Response Message</h3>After deciphering and verifying the message received, you must calculate the message to be sent. The message will contain a Silo ID, and encrypted response code, a Launch Location, and an Authentication Code.
+              	<ul>
+                  <h4>Silo ID</h4>
+                  <li>The Silo ID contains three digits in base 36, which are the number of battery holders, number of batteries, and number of port plates, each modulo 36.</li>
+                  <h4>Message</h4>
                   <li>The response message is based on what you received. You may choose any character to indicate the cipher you wish to encrypt the message with, but you cannot use a cipher that was already used in the received message. 
-					<ul><li>If your received Authentication Code was invalid, you must respond with a Jamming message, which is the 1st and 3rd character of the first part of the message, and the 2nd letter of the second part of the message.</li>
+					<ul><li>If your received Authentication Code was invalid, you must respond with a Jamming message, which is the 1st character of the first part of the message, the 2nd letter of the second part, and the 3rd character of the first part of the message.</li>
                       <li>Otherwise, if either of the parts of the received message were valid, you may respond with those.</li>
                       <li>Otherwise, if both parts of the received message were invalid, you must reply with an Error message, which is the 1st and 3rd character of the second part of the message, and the 2nd letter of the first part.</li>
                     </ul></li>
-                     <li>The Authentication Code verifies the decrypted message. See "Authentication" for how to calculate the code. If your received message was code "Red-Alpha", your offset is the Launch Location. Otherwise, your offset is the remaining letters of the received/decrypted message. For both the response message and Authentication Code calculation, keep characters in the positions they were originally in.</li>
-                </ul></ul>
-              <h3>Encryption</h3>To encrypt a message, follow these steps. There are three different types of ciphers used. To find which cipher is used, modulo the character indicating encryption by 3, treating 0 as 3. If decrypting, follow the steps backwards.
+                  <h4>Launch Location</h4>
+                  <li>The Launch Location contains three digits in base 36, which are the number of solvable modules, unsolved modules, and solved modules, each modulo 36. This is calculated when your response message is sent.</li>
+                  <h4>Authentication Code</h4>
+                  <li>The Authentication Code verifies the decrypted message. See "Authentication" for how to calculate the code. If your received message was code "Red-Alpha", your offset is the Launch Location. Otherwise, your offset is the remaining letters of the received/decrypted message. For both the response message and Authentication Code calculation, keep characters in the positions they were originally in.</li>
+                </ul>
+          </div>
+            <div class="page-footer relative-footer">Page 2 of 3</div>
+        </div>
+      <div class="page page-bg-02">
+            <div class="page-header">
+                <span class="page-header-doc-title">Keep Talking and Nobody Explodes Mod</span>
+                <span class="page-header-section-title">Silo Authorization</span>
+            </div>
+            <div class="page-content">
+               <h3>Encryption</h3>To encrypt a message, follow these steps. There are three different types of ciphers used. To find which cipher is used, modulo the character indicating encryption by 3, treating 0 as 3. If decrypting, follow the steps backwards.
                   <ol>
                     <li><b><u>Rot18:</u></b> Add I (18 in base 10) to your character. Keep your character in the range of 0-Z, adding or subtracting 10 (36 in base 10) as necessary. For example, 0 -> I, 1 -> J, A -> S, etc.</li>
                     <li><b><u>MAtbash:</u></b> Start at Z (35 in base 10) and subtract by your character. For example, 0 -> Z, 1 -> Y, A -> P, etc.</li>
@@ -87,8 +90,8 @@
                             <li>Multiply the first number from the message by the first number in your offset. Repeat for all following numbers.</li>
                           	<li>Add all of these products together and modulo by 10,000. This is your Authentication Code.</li>
                         </ol>
-          </div>
-            <div class="page-footer relative-footer">Page 2 of 2</div>
+              </div>
+            <div class="page-footer relative-footer">Page 3 of 3</div>
         </div>
     </div>
 </body>
