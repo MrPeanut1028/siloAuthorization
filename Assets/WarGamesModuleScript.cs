@@ -208,7 +208,19 @@ public class WarGamesModuleScript : MonoBehaviour {
 			Digits[i].text = "0";
 
 		//siloID
-		siloID = ToChar((Bomb.GetBatteryHolderCount() % 36).ToString(), 0) + ToChar((Bomb.GetBatteryCount() % 36).ToString(), 0) + ToChar((Bomb.GetPortPlateCount() % 36).ToString(), 0);
+		string siloBuild = ToChar((Bomb.GetBatteryHolderCount() % 36).ToString(), 0) + ToChar((Bomb.GetBatteryCount() % 36).ToString(), 0) + ToChar((Bomb.GetPortPlateCount() % 36).ToString(), 0);
+		for (int i = 0; i < 3; i++)
+        {
+			int result = -1;
+			if (int.TryParse(siloBuild[i].ToString(), out result))
+            {
+				if (result == 0)
+					siloID += Bomb.GetSerialNumberLetters().First();
+				else if (result > 0)
+					siloID += siloBuild[i];
+			}
+			else siloID += siloBuild[i];
+		}
 
 		//message calculation
 		int wrongIndex = Rand.Range(0, 10);

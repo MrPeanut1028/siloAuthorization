@@ -56,7 +56,7 @@
               <h3>Response Message</h3>After deciphering and verifying the message received, you must calculate the message to be sent. The message will contain a Silo ID, and encrypted response code, a Launch Location, and an Authentication Code.
               	<ul>
                   <h4>Silo ID</h4>
-                  <li>The Silo ID contains three digits in base 36, which are the number of battery holders, number of batteries, and number of port plates, each modulo 36.</li>
+                  <li>The Silo ID contains three digits in base 36, which are the number of battery holders, number of batteries, and number of port plates, each modulo 36. If any characters are 0, change them to the first letter of the serial number.</li>
                   <h4>Message</h4>
                   <li>The response message is based on what you received. You may choose any character to indicate the cipher you wish to encrypt the message with, but you cannot use a cipher that was already used in the received message. 
 					<ul><li>If your received Authentication Code was invalid, you must respond with a Jamming message, which is the 1st character of the first part of the message, the 2nd letter of the second part, and the 3rd character of the first part of the message.</li>
