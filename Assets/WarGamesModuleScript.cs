@@ -161,7 +161,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 		if (mStatus != Status.Start && mStatus != Status.Input) yield break;
 		ReceiveButton.AddInteractionPunch(0.2f);
 		Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
-		StartCoroutine(AudioHandler(true || mStatus == Status.Input));
+		StartCoroutine(AudioHandler(mStatus == Status.Input));
     }
 
 	string ToChar(string input, int shift)
@@ -341,37 +341,31 @@ public class WarGamesModuleScript : MonoBehaviour {
 
 		string[] possible = new string[2] { Encryptor("" + outMessages[1][1] + outMessages[1][2] + outMessages[1][3], Digits[3].text, true), Encryptor("" + outMessages[3][1] + outMessages[3][2] + outMessages[3][3], Digits[3].text, true) };
 		string answer = "";
-		string secondary = "";
 		switch (correctResponse)
         {
 			case ResponseType.Either:
 				answer = possible[0];
-				secondary = possible[1];
 				break;
 			case ResponseType.First:
 				answer = possible[0];
-				secondary = possible[1];
 				break;
 			case ResponseType.Second:
 				answer = possible[1];
-				secondary = possible[0];
 				break;
 			case ResponseType.Jamming:
 				answer = "" + possible[0][0] + possible[1][1] + possible[0][2];
-				secondary = "" + possible[1][0] + possible[0][1] + possible[1][2];
 				break;
 			case ResponseType.Error:
 				answer = "" + possible[1][0] + possible[0][1] + possible[1][2];
-				secondary = "" + possible[0][0] + possible[1][1] + possible[0][2];
 				break;
 		}
 
 		if (correctResponse == ResponseType.Either)
         {
-			if (input != answer && input != secondary)
+			if (input != possible[0] && input != possible[1])
             {
 				correct = false;
-				Log("With your selected cipher (" + Ciphers[ToNum(Digits[3].text, 0) % 3] + "), you could have sent " + answer + " or " + secondary + ", but you sent " + input + ".");
+				Log("With your selected cipher (" + Ciphers[ToNum(Digits[3].text, 0) % 3] + "), you could have sent " + possible[0] + " or " + possible[1] + ", but you sent " + input + ".");
 			}
 		}
 		else
@@ -386,7 +380,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 		int[] logAuth2 = new int[3] { 0, 0, 0 };
 		if (correctColor == MessageColor.Green || correctColor == MessageColor.Yellow)
 			for (int i = 0; i < 3; i++)
-				logAuth2[i] = ToNum(answer[i].ToString(), 0) * ToNum(secondary[i].ToString(), 0);
+				logAuth2[i] = ToNum(answer[i].ToString(), 0) * ToNum(siloID[i].ToString(), 0);
 		else
 			for (int i = 0; i < 3; i++)
 				logAuth2[i] = ToNum(answer[i].ToString(), 0) * ToNum(location[i].ToString(), 0);
@@ -422,28 +416,22 @@ public class WarGamesModuleScript : MonoBehaviour {
 		int cipher = !usedCiphers.Contains(0) ? 0 : !usedCiphers.Contains(1) ? 1 : 2;
 		string[] possible = new string[2] { Encryptor("" + outMessages[1][1] + outMessages[1][2] + outMessages[1][3], cipher.ToString(), true), Encryptor("" + outMessages[3][1] + outMessages[3][2] + outMessages[3][3], cipher.ToString(), true) };
 		string answer = "";
-		string secondary = "";
 		switch (correctResponse)
 		{
 			case ResponseType.Either:
 				answer = possible[0];
-				secondary = possible[1];
 				break;
 			case ResponseType.First:
 				answer = possible[0];
-				secondary = possible[1];
 				break;
 			case ResponseType.Second:
 				answer = possible[1];
-				secondary = possible[0];
 				break;
 			case ResponseType.Jamming:
 				answer = "" + possible[0][0] + possible[1][1] + possible[0][2];
-				secondary = "" + possible[1][0] + possible[0][1] + possible[1][2];
 				break;
 			case ResponseType.Error:
 				answer = "" + possible[1][0] + possible[0][1] + possible[1][2];
-				secondary = "" + possible[0][0] + possible[1][1] + possible[0][2];
 				break;
 		}
 		string message = cipher.ToString() + answer;
@@ -451,7 +439,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 		int[] logAuth2 = new int[3] { 0, 0, 0 };
 		if (correctColor == MessageColor.Green || correctColor == MessageColor.Yellow)
 			for (int i = 0; i < 3; i++)
-				logAuth2[i] = ToNum(answer[i].ToString(), 0) * ToNum(secondary[i].ToString(), 0);
+				logAuth2[i] = ToNum(answer[i].ToString(), 0) * ToNum(siloID[i].ToString(), 0);
 		else
 			for (int i = 0; i < 3; i++)
 				logAuth2[i] = ToNum(answer[i].ToString(), 0) * ToNum(location[i].ToString(), 0);
