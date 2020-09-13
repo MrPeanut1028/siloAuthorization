@@ -40,7 +40,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 	//logging
 	private static int moduleIdCounter = 1;
 	private int moduleID;
-	private readonly string[] Ciphers = new string[3] { "Caesar", "Rot18", "MAtbash"};
+	private readonly string[] Ciphers = new string[3] { "Post-Modern", "Rot18", "MAtbash"};
 
 	//logic
 	private enum ResponseType
@@ -60,6 +60,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 	private readonly string Numbers = "0123456789";
 	private readonly string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	private readonly string AlphabetandNumbers = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	private readonly string PostModernAlphabet = "1234567890QWERTYUIOPASDFGHJKLZXCVBNM";
 #pragma warning disable IDE0044 
 	private bool[] correctParts = new bool[3] { false, false, false }; //in order, they are 1st part, 2nd part, authenication
 	private string[] outMessages = new string[4] { "", "", "", "" }; //in order they are 1st part end, dec, 2nd part end, dec
@@ -464,10 +465,20 @@ public class WarGamesModuleScript : MonoBehaviour {
 		string output = "";
 		int usedcipher = ToNum(cipher, 0) % 3;
 		int offset = (int.TryParse(siloID[0].ToString(), out offset) && offset != 0) ? offset : (int.TryParse(siloID[1].ToString(), out offset) && offset != 0) ? offset : (int.TryParse(siloID[2].ToString(), out offset) && offset != 0) ? offset : 9;
-		if (usedcipher == 0) //caesar
+		if (usedcipher == 0) // postmodern
 		{
 			for (int i = 0; i < message.Length; i++)
-				output += ToChar(message[i].ToString(), encrypt ? offset : offset * -1);
+            {
+				int targetPos = Array.IndexOf(PostModernAlphabet.ToCharArray(), message[i]) + (encrypt ? offset : offset * -1);
+				while (targetPos < 0 || targetPos > 35)
+				{
+					if (targetPos < 0)
+						targetPos += 36;
+					if (targetPos > 35)
+						targetPos -= 36;
+				}
+				output += PostModernAlphabet[targetPos];
+			}
 		}
 		else if (usedcipher == 1) // rot18
 		{
