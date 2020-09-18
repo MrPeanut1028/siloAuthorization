@@ -30,6 +30,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 	public AudioClip[] MouseTrapStarts;
 	public AudioClip[] GreyGooseSounds;
 	public AudioClip[] GreyGooseStarts;
+	public AudioClip[] ModuleSounds;
 
 	//buttons
 	public KMSelectable ReceiveButton;
@@ -106,6 +107,7 @@ public class WarGamesModuleScript : MonoBehaviour {
     {
 		CalculateConditions();
 		mStatus = Status.Start;
+		Audio.PlaySoundAtTransform(ModuleSounds[0].name, transform);
 	}
 
 	void Log(string message)
@@ -466,15 +468,17 @@ public class WarGamesModuleScript : MonoBehaviour {
             }
 			yield return new WaitForSeconds(0.5f);
 		}
-		yield return new WaitForSeconds(5.0f);
 		if (correct.Contains(false))
         {
+			yield return new WaitForSeconds(5.0f);
 			mStatus = Status.Start;
 			Module.HandleStrike();
 			CalculateConditions();
 		}
 		else
         {
+			Audio.PlaySoundAtTransform(ModuleSounds[1].name, transform);
+			yield return new WaitForSeconds(5.0f);
 			mStatus = Status.Solved;
 			Module.HandlePass();
         }
