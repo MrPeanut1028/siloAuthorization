@@ -179,6 +179,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 			DebugLog(CalculateSolution());
 			return;
 		}
+		mStatus = Status.Busy;
 		SendButton.AddInteractionPunch(0.2f);
 		Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
 		Log(VerifySolution(true) ? "Correct, module solved." : "Incorrect, strike."); 
@@ -410,16 +411,17 @@ public class WarGamesModuleScript : MonoBehaviour {
 			}
         }
 
+		string decInput = Encryptor(input, Digits[3].text, false);
 		int[] logAuth2 = new int[3] { 0, 0, 0 };
 		if (correctColor == MessageColor.Green || correctColor == MessageColor.Yellow)
 			for (int i = 0; i < 3; i++)
-				logAuth2[i] = ToNum(input[i].ToString(), 0) * ToNum(siloID[i].ToString(), 0);
+				logAuth2[i] = ToNum(decInput[i].ToString(), 0) * ToNum(siloID[i].ToString(), 0);
 		else
 			for (int i = 0; i < 3; i++)
-				logAuth2[i] = ToNum(input[i].ToString(), 0) * ToNum(location[i].ToString(), 0);
+				logAuth2[i] = ToNum(decInput[i].ToString(), 0) * ToNum(location[i].ToString(), 0);
 		ansAuthCode = logAuth2[0] + logAuth2[1] + logAuth2[2];
 		if (check)
-			Log("With your type " + (correctColor == MessageColor.Green ? "Green-Alpha" : correctColor == MessageColor.Yellow ? "Yellow-Alpha" : "Red-Alpha") + " message and your decrypted message of " + Encryptor(input, Digits[3].text, false) + ", your sums were " + logAuth2[0].ToString() + ", " + logAuth2[1].ToString() + " and " + logAuth2[2].ToString() + ", which totals up to " + ansAuthCode.ToString("0000") + ".");
+			Log("With your type " + (correctColor == MessageColor.Green ? "Green-Alpha" : correctColor == MessageColor.Yellow ? "Yellow-Alpha" : "Red-Alpha") + " message and your decrypted message of " + decInput + ", your sums were " + logAuth2[0].ToString() + ", " + logAuth2[1].ToString() + " and " + logAuth2[2].ToString() + ", which totals up to " + ansAuthCode.ToString("0000") + ".");
 		if (ansAuthCode.ToString("0000") != ConfirmDigits[0].text + ConfirmDigits[1].text + ConfirmDigits[2].text + ConfirmDigits[3].text)
         {
 			correct[3] = false;
@@ -437,7 +439,6 @@ public class WarGamesModuleScript : MonoBehaviour {
 
 	IEnumerator EndRoutine(bool[] correct)
     {
-		mStatus = Status.Busy;
 		yield return new WaitForSeconds(1.0f);
 		for (int i = 0; i < 14; i++)
         {
@@ -513,13 +514,14 @@ public class WarGamesModuleScript : MonoBehaviour {
 		}
 		string message = cipher.ToString() + answer;
 		string location= ToChar((Bomb.GetSolvableModuleNames().Count() % 36).ToString(), 0) + ToChar(((Bomb.GetSolvableModuleNames().Count() - Bomb.GetSolvedModuleNames().Count()) % 36).ToString(), 0) + ToChar((Bomb.GetSolvedModuleNames().Count() % 36).ToString(), 0);
+		string decAnswer = Encryptor(answer, cipher.ToString(), false);
 		int[] logAuth2 = new int[3] { 0, 0, 0 };
 		if (correctColor == MessageColor.Green || correctColor == MessageColor.Yellow)
 			for (int i = 0; i < 3; i++)
-				logAuth2[i] = ToNum(answer[i].ToString(), 0) * ToNum(siloID[i].ToString(), 0);
+				logAuth2[i] = ToNum(decAnswer[i].ToString(), 0) * ToNum(siloID[i].ToString(), 0);
 		else
 			for (int i = 0; i < 3; i++)
-				logAuth2[i] = ToNum(answer[i].ToString(), 0) * ToNum(location[i].ToString(), 0);
+				logAuth2[i] = ToNum(decAnswer[i].ToString(), 0) * ToNum(location[i].ToString(), 0);
 		ansAuthCode = logAuth2[0] + logAuth2[1] + logAuth2[2];
 		Log("With " + Bomb.GetSolvedModuleNames().Count().ToString() + " solved module(s), your solution could have been Silo: " + siloID.ToString() + " | Message: " + message + " | Location: " + location + " | Authentication Code: " + ansAuthCode.ToString("0000") + ".");
 		return siloID.ToString() + message + location + ansAuthCode.ToString("0000");
@@ -611,16 +613,24 @@ public class WarGamesModuleScript : MonoBehaviour {
 		if (!skip)
 		{
 			int startTime = (int)Bomb.GetTime();
-			yield return new WaitForSeconds(1.0f);
+			yield return new WaitForSeconds(2.0f);
 			if (Bomb.GetTime() < startTime && startTime > 300)
 			{
 				float timeFactor = Rand.Range(60, 81) * 0.01f * startTime;
-				DebugLog(timeFactor.ToString());
-				while (timeFactor < Bomb.GetTime()) yield return new WaitForSeconds(0.01f);
+				DebugLog("Module will give messsage at " + timeFactor.ToString() + " seconds.");
+				while (timeFactor < Bomb.GetTime() && !tpAutosolve) yield return new WaitForSeconds(0.01f);
 			}
-			else yield return new WaitForSeconds(29.0f);
+			else
+			{
+				DebugLog("Insufficient time remaining, 28 seconds until message.");
+				yield return new WaitForSeconds(28.0f);
+			}
 		}
-		else yield return new WaitForSeconds(30.0f);
+		else
+		{
+			DebugLog("Skip requested, 30 seconds until message.");
+			yield return new WaitForSeconds(30.0f);
+		}
         int VoiceIndex = Rand.Range(0, 2);
 		if (VoiceIndex == 0) //MouseTrap
         {
