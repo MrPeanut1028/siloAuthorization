@@ -75,6 +75,9 @@ public class WarGamesModuleScript : MonoBehaviour {
 	private MessageColor correctColor;
 	private Status mStatus = Status.Busy;
 
+	//TP
+	bool tpAutosolve = false;
+
 
 	// Use this for initialization
 	private void Start () 
@@ -166,7 +169,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 		if (mStatus != Status.Start && mStatus != Status.Input) return;
 		ReceiveButton.AddInteractionPunch(0.2f);
 		Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
-		StartCoroutine(AudioHandler(mStatus == Status.Input));
+		StartCoroutine(AudioHandler(mStatus == Status.Input || tpAutosolve));
     }
 
 	void SubmitModule() 
@@ -682,27 +685,27 @@ public class WarGamesModuleScript : MonoBehaviour {
 		if (parameters.Count() == 1)
         {
 			if (parameters[0] == "RECEIVE")
-            {
-				if (mStatus == Status.Busy || mStatus == Status.Waiting) yield break;
+			{
 				yield return null;
 				ReceiveButton.OnInteract();
-            }
+			}
 			else if (parameters[0] == "SEND")
-            {
-				if (mStatus != Status.Input) yield break;
+			{
 				yield return null;
 				SendButton.OnInteract();
-				if (VerifySolution(false))
-					yield return "solve";
-				else
-					yield return "strike";
+				if (mStatus == Status.Busy)
+                {
+					if (VerifySolution(false))
+						yield return "solve";
+					else
+						yield return "strike";
+				}
 			}
         }
 		else if (parameters.Count() == 2)
         {
 			if (parameters[0] == "SILO")
             {
-				if (mStatus == Status.Waiting || mStatus == Status.Busy) yield break;
 				if (parameters[1].Length == 3 && parameters[1].All(x => AlphabetandNumbers.Contains(x)))
                 {
 					yield return null;
@@ -721,7 +724,6 @@ public class WarGamesModuleScript : MonoBehaviour {
             }
 			else if (parameters[0] == "MESSAGE")
             {
-				if (mStatus == Status.Waiting || mStatus == Status.Busy) yield break;
 				if (parameters[1].Length == 4 && parameters[1].All(x => AlphabetandNumbers.Contains(x)))
 				{
 					yield return null;
@@ -740,7 +742,6 @@ public class WarGamesModuleScript : MonoBehaviour {
 			}
 			else if (parameters[0] == "LOCATION")
             {
-				if (mStatus == Status.Waiting || mStatus == Status.Busy) yield break;
 				if (parameters[1].Length == 3 && parameters[1].All(x => AlphabetandNumbers.Contains(x)))
 				{
 					yield return null;
@@ -759,7 +760,6 @@ public class WarGamesModuleScript : MonoBehaviour {
 			}
 			else if (parameters[0] == "AUTH" || parameters[0] == "AUTHENTICATION")
             {
-				if (mStatus != Status.Input) yield break;
 				if (parameters[1].Length < 5 && parameters[1].All(x => Numbers.Contains(x)))
 				{
 					yield return null;
@@ -783,16 +783,14 @@ public class WarGamesModuleScript : MonoBehaviour {
 
 	IEnumerator TwitchHandleForcedSolve()
     {
+		tpAutosolve = true;
+		while (mStatus != Status.Input)
+		{
+			if (mStatus == Status.Start)
+				ReceiveButton.OnInteract();
+			yield return true;
+		}
 		string answer = CalculateSolution();
-		if (mStatus != Status.Input)
-        {
-			while (mStatus != Status.Input)
-            {
-				if (mStatus == Status.Start)
-					ReceiveButton.OnInteract();
-				yield return true;
-			}
-        }
 		for (int i = 0; i < 10; i++)
         {
 			DigitArrows[2 * i].OnInteract();
