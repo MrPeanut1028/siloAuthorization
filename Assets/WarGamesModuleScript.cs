@@ -410,13 +410,13 @@ public class WarGamesModuleScript : MonoBehaviour {
 		int[] logAuth2 = new int[3] { 0, 0, 0 };
 		if (correctColor == MessageColor.Green || correctColor == MessageColor.Yellow)
 			for (int i = 0; i < 3; i++)
-				logAuth2[i] = ToNum(answer[i].ToString(), 0) * ToNum(siloID[i].ToString(), 0);
+				logAuth2[i] = ToNum(input[i].ToString(), 0) * ToNum(siloID[i].ToString(), 0);
 		else
 			for (int i = 0; i < 3; i++)
-				logAuth2[i] = ToNum(answer[i].ToString(), 0) * ToNum(location[i].ToString(), 0);
+				logAuth2[i] = ToNum(input[i].ToString(), 0) * ToNum(location[i].ToString(), 0);
 		ansAuthCode = logAuth2[0] + logAuth2[1] + logAuth2[2];
 		if (check)
-			Log("With your type " + (correctColor == MessageColor.Green ? "Green-Alpha" : correctColor == MessageColor.Yellow ? "Yellow-Alpha" : "Red-Alpha") + " message, your sums were " + logAuth2[0].ToString() + ", " + logAuth2[1].ToString() + " and " + logAuth2[2].ToString() + ", which totals up to " + ansAuthCode.ToString("0000") + ".");
+			Log("With your type " + (correctColor == MessageColor.Green ? "Green-Alpha" : correctColor == MessageColor.Yellow ? "Yellow-Alpha" : "Red-Alpha") + " message and your decrypted message of " + Encryptor(input, Digits[3].text, false) + ", your sums were " + logAuth2[0].ToString() + ", " + logAuth2[1].ToString() + " and " + logAuth2[2].ToString() + ", which totals up to " + ansAuthCode.ToString("0000") + ".");
 		if (ansAuthCode.ToString("0000") != ConfirmDigits[0].text + ConfirmDigits[1].text + ConfirmDigits[2].text + ConfirmDigits[3].text)
         {
 			correct[3] = false;
@@ -526,7 +526,7 @@ public class WarGamesModuleScript : MonoBehaviour {
     {
 		string output = "";
 		int usedcipher = ToNum(cipher, 0) % 3;
-		int offset = (int.TryParse(siloID[0].ToString(), out offset) && offset != 0) ? offset : (int.TryParse(siloID[1].ToString(), out offset) && offset != 0) ? offset : (int.TryParse(siloID[2].ToString(), out offset) && offset != 0) ? offset : 9;
+		int offset = ToNum(siloID[0].ToString(), 0) > 0 ? ToNum(siloID[0].ToString(), 0) : ToNum(siloID[1].ToString(), 0) > 0 ? ToNum(siloID[1].ToString(), 0) : ToNum(siloID[2].ToString(), 0) > 0 ? ToNum(siloID[2].ToString(), 0) : 9;
 		if (usedcipher == 0) // postmodern
 		{
 			for (int i = 0; i < message.Length; i++)
@@ -784,7 +784,15 @@ public class WarGamesModuleScript : MonoBehaviour {
 	IEnumerator TwitchHandleForcedSolve()
     {
 		string answer = CalculateSolution();
-		mStatus = Status.Input;
+		if (mStatus != Status.Input)
+        {
+			while (mStatus != Status.Input)
+            {
+				if (mStatus == Status.Start)
+					ReceiveButton.OnInteract();
+				yield return true;
+			}
+        }
 		for (int i = 0; i < 10; i++)
         {
 			DigitArrows[2 * i].OnInteract();

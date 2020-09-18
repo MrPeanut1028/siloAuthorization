@@ -79,9 +79,9 @@
             <div class="page-content">
                <h3>Encryption</h3>To encrypt a message, follow these steps. There are three different types of ciphers used. To find which cipher is used, modulo the character indicating encryption by 3, treating 0 as 3. If decrypting, follow the steps backwards.
                   <ol>
-                    <li><b><u>Rot18:</u></b> Add I (18 in base 10) to your character. Keep your character in the range of 0-Z, adding or subtracting 10 (36 in base 10) as necessary. For example, 0 -> I, 1 -> J, A -> S, etc.</li>
-                    <li><b><u>MAtbash:</u></b> Swap your character with the mirrored character in the alphabet, using 0-9 and A-Z. For example, 0 -> Z, 1 -> Y, A -> P, etc.</li>
-                    <li><b><u>Post-Modern:</u></b> Move your character forward by the first non-zero digit in the Silo ID (if all digits are 0, use 9) on a QWERTY keyboard, including 1-0. Loop around as necessary. For example, with a Silo ID of 015, 9 -> 0, 0 -> Q, M -> 1, etc. </li>
+                    <li><b><u>Rot18:</u></b> Add I (18 in base 10) to your character. Keep your character in the range of 0-Z, adding or subtracting 10 (36 in base 10) as necessary. For example, 0 -&gt; I, 1 -&gt; J, A -&gt; S, etc.</li>
+                    <li><b><u>MAtbash:</u></b> Swap your character with the mirrored character in the alphabet, using 0-9 and A-Z. For example, 0 -&gt; Z, 1 -&gt; Y, A -&gt; P, etc.</li>
+                    <li><b><u>Post-Modern:</u></b> Move your character forward by the first non-zero character in the Silo ID (if all characters are 0, use 9) on a QWERTY keyboard, including 1-0. Loop around as necessary. For example, with a Silo ID of 015, 9 -&gt; 0, 0 -&gt; Q, M -&gt; 1, etc.</li>
  
                   </ol>
               <h3>Authentication</h3>To calculate an Authentication Code, follow these steps.
