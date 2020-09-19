@@ -474,7 +474,8 @@ public class WarGamesModuleScript : MonoBehaviour {
 		}
 		if (correct.Contains(false))
         {
-			yield return new WaitForSeconds(5.0f);
+			Audio.PlaySoundAtTransform(ModuleSounds[2].name, transform);
+			yield return new WaitForSeconds(4.5f);
 			mStatus = Status.Start;
 			Module.HandleStrike();
 			CalculateConditions();
