@@ -690,6 +690,8 @@ public class WarGamesModuleScript : MonoBehaviour {
 		mStatus = Status.Input;
     }
 
+	public readonly string TwitchHelpMessage = "Receive the message with !{0} receive. Send the message with !{0} send. Change the displays with !{0} (display) (input). Valid displays are Silo, Message, Location, and Authentication/Auth.";
+
 	IEnumerator ProcessTwitchCommand(string command)
     {
 		string[] parameters = command.ToUpperInvariant().Trim().Split(' ').ToArray();
@@ -717,6 +719,11 @@ public class WarGamesModuleScript : MonoBehaviour {
         {
 			if (parameters[0] == "SILO")
             {
+				if (mStatus != Status.Input)
+                {
+					yield return "sendtochaterror Sorry, you cannot input right now.";
+					yield break;
+                }
 				if (parameters[1].Length == 3 && parameters[1].All(x => AlphabetandNumbers.Contains(x)))
                 {
 					yield return null;
@@ -735,6 +742,11 @@ public class WarGamesModuleScript : MonoBehaviour {
             }
 			else if (parameters[0] == "MESSAGE")
             {
+				if (mStatus != Status.Input)
+				{
+					yield return "sendtochaterror Sorry, you cannot input right now.";
+					yield break;
+				}
 				if (parameters[1].Length == 4 && parameters[1].All(x => AlphabetandNumbers.Contains(x)))
 				{
 					yield return null;
@@ -753,6 +765,11 @@ public class WarGamesModuleScript : MonoBehaviour {
 			}
 			else if (parameters[0] == "LOCATION")
             {
+				if (mStatus != Status.Input)
+				{
+					yield return "sendtochaterror Sorry, you cannot input right now.";
+					yield break;
+				}
 				if (parameters[1].Length == 3 && parameters[1].All(x => AlphabetandNumbers.Contains(x)))
 				{
 					yield return null;
@@ -771,6 +788,11 @@ public class WarGamesModuleScript : MonoBehaviour {
 			}
 			else if (parameters[0] == "AUTH" || parameters[0] == "AUTHENTICATION")
             {
+				if (mStatus != Status.Input)
+				{
+					yield return "sendtochaterror Sorry, you cannot input right now.";
+					yield break;
+				}
 				if (parameters[1].Length < 5 && parameters[1].All(x => Numbers.Contains(x)))
 				{
 					yield return null;
