@@ -483,7 +483,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 		else
         {
 			Audio.PlaySoundAtTransform(ModuleSounds[1].name, transform);
-			yield return new WaitForSeconds(5.0f);
+			yield return new WaitForSeconds(5.2f);
 			mStatus = Status.Solved;
 			Module.HandlePass();
         }
@@ -618,12 +618,12 @@ public class WarGamesModuleScript : MonoBehaviour {
 			if (Bomb.GetTime() < startTime && startTime > 300)
 			{
 				float timeFactor = Rand.Range(60, 81) * 0.01f * startTime;
-				DebugLog("Module will give messsage at " + timeFactor.ToString() + " seconds.");
+				DebugLog("Message will be given at " + timeFactor.ToString() + " seconds.");
 				while (timeFactor < Bomb.GetTime() && !tpAutosolve) yield return new WaitForSeconds(0.01f);
 			}
 			else
 			{
-				DebugLog("Insufficient time remaining, 28 seconds until message.");
+				DebugLog("Failed time test, 28 seconds until message.");
 				yield return new WaitForSeconds(28.0f);
 			}
 		}
@@ -644,7 +644,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 				Audio.PlaySoundAtTransform(MouseTrapSounds[ToNum(outMessages[0][i].ToString(), 0)].name, transform);
 				yield return new WaitForSeconds(0.8f);
 			}
-			yield return new WaitForSeconds(0.2f);
+			yield return new WaitForSeconds(0.4f);
 			for (int i = 0; i < 4; i++)
 			{
 				Audio.PlaySoundAtTransform(MouseTrapSounds[ToNum(outMessages[2][i].ToString(), 0)].name, transform);
@@ -671,7 +671,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 				Audio.PlaySoundAtTransform(GreyGooseSounds[ToNum(outMessages[0][i].ToString(), 0)].name, transform);
 				yield return new WaitForSeconds(0.8f);
 			}
-			yield return new WaitForSeconds(0.2f);
+			yield return new WaitForSeconds(0.4f);
 			for (int i = 0; i < 4; i++)
 			{
 				Audio.PlaySoundAtTransform(GreyGooseSounds[ToNum(outMessages[2][i].ToString(), 0)].name, transform);
