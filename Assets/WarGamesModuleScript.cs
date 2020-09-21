@@ -633,6 +633,8 @@ public class WarGamesModuleScript : MonoBehaviour {
 			yield return new WaitForSeconds(30.0f);
 		}
         int VoiceIndex = Rand.Range(0, 2);
+		Audio.PlaySoundAtTransform(ModuleSounds[3].name, transform);
+		yield return new WaitForSeconds(2.0f);
 		if (VoiceIndex == 0) //MouseTrap
         {
 			Audio.PlaySoundAtTransform(MouseTrapStarts[correctColor == MessageColor.Green ? 2 : correctColor == MessageColor.Yellow ? 3 : 4].name, transform);

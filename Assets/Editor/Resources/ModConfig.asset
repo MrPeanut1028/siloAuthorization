@@ -16,7 +16,7 @@ MonoBehaviour:
   author: MrPeanut1028
   description: "There's no way to win. The game itself is pointless!\r\n\r\nIdea by
     Jr. All Star, Implementation by MrPeanut1028.\r\nVoice Acted by BigLittleOrMe
-    and superpawn87.\r\n\r\nTP Supported.\r\n\r\nModule ID: siloAuthorization\r\nManual:
+    and Fish.\r\n\r\nTP Supported.\r\n\r\nModule ID: siloAuthorization\r\nManual:
     https://ktane.timwi.de/HTML/Silo%20Authorization.html"
   version: 1.7.1
   outputFolder: build
