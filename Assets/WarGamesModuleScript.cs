@@ -458,7 +458,9 @@ public class WarGamesModuleScript : MonoBehaviour {
 			}
 			else if (i < 10)
 			{
-				if (correct[2])
+				if (!correct[2] && tpAutosolve)
+					Digits[i].text = "BYP"[i - 7].ToString();
+				else if (correct[2])
 					Digits[i].text = GoodLetters[i].ToString();
 				else
 					Digits[i].text = BadLetters[i].ToString();
@@ -472,7 +474,7 @@ public class WarGamesModuleScript : MonoBehaviour {
             }
 			yield return new WaitForSeconds(0.5f);
 		}
-		if (correct.Contains(false))
+		if (!correct[0] || !correct[1] || !(correct[2] || tpAutosolve) || !correct[3])
         {
 			Audio.PlaySoundAtTransform(ModuleSounds[2].name, transform);
 			yield return new WaitForSeconds(4.5f);
