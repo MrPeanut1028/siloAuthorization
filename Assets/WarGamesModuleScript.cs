@@ -348,7 +348,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 		bool[] correct = new bool[4] { true, true, true, true };
 		string input = Digits[4].text + Digits[5].text + Digits[6].text;
 		if (check)
-			Log("You sent Silo ID: " + Digits[0].text + Digits[1].text + Digits[2].text + " | Message: " + Digits[3].text + input + " | Location: " + Digits[7].text + Digits[8].text + Digits[9].text + ".");
+			Log("You sent Silo ID: " + Digits[0].text + Digits[1].text + Digits[2].text + " | Message: " + Digits[3].text + input + " | Location: " + Digits[7].text + Digits[8].text + Digits[9].text +  " | Authentication: " + ConfirmDigits[0].text + ConfirmDigits[1].text + ConfirmDigits[2].text + ConfirmDigits[3].text + ".");
 		if (siloID != Digits[0].text + Digits[1].text + Digits[2].text)
         {
 			correct[0] = false;
