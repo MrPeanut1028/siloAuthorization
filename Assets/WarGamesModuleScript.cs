@@ -467,14 +467,16 @@ public class WarGamesModuleScript : MonoBehaviour {
 			}
 			else
             {
-				if (correct[3])
+				if (!correct[3] && tpAutosolve)
+					ConfirmDigits[i - 10].text = "3333"[i - 10].ToString();
+				else if (correct[3])
 					ConfirmDigits[i - 10].text = GoodLetters[i].ToString();
 				else
 					ConfirmDigits[i - 10].text = BadLetters[i].ToString();
             }
 			yield return new WaitForSeconds(0.5f);
 		}
-		if (!correct[0] || !correct[1] || !(correct[2] || tpAutosolve) || !correct[3])
+		if (!correct[0] || !correct[1] || !(correct[2] || tpAutosolve) || !(correct[3] || tpAutosolve))
         {
 			Audio.PlaySoundAtTransform(ModuleSounds[2].name, transform);
 			yield return new WaitForSeconds(4.5f);
