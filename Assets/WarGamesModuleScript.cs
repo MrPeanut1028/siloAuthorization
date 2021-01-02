@@ -629,7 +629,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 	IEnumerator AudioHandler(bool skip)
     {
 		mStatus = Status.Waiting;
-		if (!skip && false)
+		if (!skip)
 		{
 			if (ZenModeActive)
             {
@@ -667,8 +667,8 @@ public class WarGamesModuleScript : MonoBehaviour {
 		}
 		else
 		{
-			DebugLog("Skip requested, 5 seconds until message.");
-			yield return new WaitForSeconds(5.0f);
+			DebugLog("Skip requested, 30 seconds until message.");
+			yield return new WaitForSeconds(30.0f);
 		}
         int VoiceIndex = Rand.Range(0, 3);
 		mStatus = Status.Busy;
