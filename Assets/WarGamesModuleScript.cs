@@ -30,6 +30,8 @@ public class WarGamesModuleScript : MonoBehaviour {
 	public AudioClip[] MouseTrapStarts;
 	public AudioClip[] GreyGooseSounds;
 	public AudioClip[] GreyGooseStarts;
+	public AudioClip[] BlackHoleSounds;
+	public AudioClip[] BlackHoleStarts;
 	public AudioClip[] ModuleSounds;
 
 	//buttons
@@ -727,6 +729,34 @@ public class WarGamesModuleScript : MonoBehaviour {
 				yield return new WaitForSeconds(0.8f);
 			}
 		}
+		else //BlackHole
+        {
+			DebugLog("Message given by BlackHole.");
+			Audio.PlaySoundAtTransform(BlackHoleStarts[correctColor == MessageColor.Green ? 2 : correctColor == MessageColor.Yellow ? 3 : 4].name, transform);
+			yield return new WaitForSeconds(10.0f);
+			Audio.PlaySoundAtTransform(BlackHoleStarts[1].name, transform);
+			yield return new WaitForSeconds(2.0f);
+			for (int i = 0; i < 4; i++)
+			{
+				Audio.PlaySoundAtTransform(BlackHoleSounds[ToNum(outMessages[0][i].ToString(), 0)].name, transform);
+				yield return new WaitForSeconds(0.9f);
+			}
+			yield return new WaitForSeconds(0.4f);
+			for (int i = 0; i < 4; i++)
+			{
+				Audio.PlaySoundAtTransform(BlackHoleSounds[ToNum(outMessages[2][i].ToString(), 0)].name, transform);
+				yield return new WaitForSeconds(0.9f);
+			}
+			Audio.PlaySoundAtTransform(BlackHoleStarts[0].name, transform);
+			yield return new WaitForSeconds(1.5f);
+			for (int i = 0; i < 4; i++)
+			{
+
+				Audio.PlaySoundAtTransform(BlackHoleSounds[int.Parse(outAuthCode.ToString("0000")[i].ToString())].name, transform);
+				yield return new WaitForSeconds(0.9f);
+			}
+		}
+
 		activeDigits = new bool[14] { true, true, true, true, true, true, true, true, true, true, true, true, true, true };
 		mStatus = Status.Input;
     }
