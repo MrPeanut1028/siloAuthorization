@@ -74,6 +74,8 @@ public class WarGamesModuleScript : MonoBehaviour {
 	private ResponseType correctResponse;
 	private MessageColor correctColor;
 	private Status mStatus = Status.Busy;
+	bool TimeModeActive;
+	bool ZenModeActive;
 
 	//TP
 	bool tpAutosolve = false;
@@ -99,6 +101,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 		busyLight.range *= transform.lossyScale.x;
 
 		StartCoroutine(BusyLightRoutine());
+		StartCoroutine(WaitingLightRoutine());
 		StartCoroutine(RotateLetters());
 	}
 	
@@ -451,7 +454,9 @@ public class WarGamesModuleScript : MonoBehaviour {
             }
 			else if (i < 7)
             {
-				if (correct[1])
+				if (!correct[1] && tpAutosolve)
+					Digits[i].text = "BYPA"[i - 3].ToString();
+				else if (correct[1])
 					Digits[i].text = GoodLetters[i].ToString();
 				else
 					Digits[i].text = BadLetters[i].ToString();
@@ -565,12 +570,11 @@ public class WarGamesModuleScript : MonoBehaviour {
 		return output;
     }
 
-	IEnumerator BusyLightRoutine()
+	IEnumerator WaitingLightRoutine()
     {
 		while (true)
         {
-			yield return new WaitForSeconds(0.1f);
-			busyLight.enabled = mStatus == Status.Busy;
+			yield return null;
 			if (mStatus == Status.Start || mStatus == Status.Busy || mStatus == Status.Solved) waitingLight.enabled = false;
 			else if (mStatus == Status.Waiting)
             {
@@ -586,9 +590,17 @@ public class WarGamesModuleScript : MonoBehaviour {
 				waitingLight.enabled = false;
 				yield return new WaitForSeconds(1.0f);
 			}
-
 		}
     }
+
+	IEnumerator BusyLightRoutine()
+    {
+		while (true)
+        {
+			yield return null;
+			busyLight.enabled = mStatus == Status.Busy;
+		}
+	}
 
 	IEnumerator RotateLetters()
     {
@@ -615,32 +627,54 @@ public class WarGamesModuleScript : MonoBehaviour {
 	IEnumerator AudioHandler(bool skip)
     {
 		mStatus = Status.Waiting;
-		if (!skip)
+		if (!skip && false)
 		{
-			int startTime = (int)Bomb.GetTime();
-			yield return new WaitForSeconds(2.0f);
-			if (Bomb.GetTime() < startTime && startTime > 300)
-			{
-				float timeFactor = Rand.Range(60, 81) * 0.01f * startTime;
-				DebugLog("Message will be given at " + timeFactor.ToString() + " seconds.");
-				while (timeFactor < Bomb.GetTime() && !tpAutosolve) yield return new WaitForSeconds(0.01f);
+			if (ZenModeActive)
+            {
+				DebugLog("Zen Mode detected, waiting 30 seconds.");
+				yield return new WaitForSeconds(30.0f);
 			}
 			else
-			{
-				DebugLog("Failed time test, 28 seconds until message.");
-				yield return new WaitForSeconds(28.0f);
+            {
+				int startTime = (int)Bomb.GetTime();
+				float timeFactor = Rand.Range(60, 81) * 0.01f * startTime;
+				if (startTime < 300)
+                {
+					DebugLog("Not enough remaining time, waiting 30 seconds.");
+					yield return new WaitForSeconds(30.0f);
+				}
+				else if (TimeModeActive)
+                {
+					DebugLog("Time Mode detected, waiting " + (startTime - timeFactor).ToString() + " seconds, or when the bomb time goes below " + timeFactor.ToString() + " seconds.");
+					bool exit = false;
+					float timeElapsed = 0f;
+					while (!exit)
+                    {
+						timeElapsed += Time.deltaTime;
+						if (startTime - timeElapsed < timeFactor || timeFactor > Bomb.GetTime() || !tpAutosolve)
+							exit = true;
+						yield return new WaitForSeconds(0.01f);
+                    }
+                }
+				else
+                {
+					DebugLog("No special mode detected, waiting until bomb time " + timeFactor.ToString() + " seconds.");
+					while (timeFactor < Bomb.GetTime() && !tpAutosolve) yield return new WaitForSeconds(0.01f);
+				}
 			}
 		}
 		else
 		{
-			DebugLog("Skip requested, 30 seconds until message.");
-			yield return new WaitForSeconds(30.0f);
+			DebugLog("Skip requested, 5 seconds until message.");
+			yield return new WaitForSeconds(5.0f);
 		}
-        int VoiceIndex = Rand.Range(0, 2);
+        int VoiceIndex = Rand.Range(0, 3);
+		mStatus = Status.Busy;
 		Audio.PlaySoundAtTransform(ModuleSounds[3].name, transform);
 		yield return new WaitForSeconds(2.0f);
 		if (VoiceIndex == 0) //MouseTrap
         {
+			DebugLog("Message given by MouseTrap.");
 			Audio.PlaySoundAtTransform(MouseTrapStarts[correctColor == MessageColor.Green ? 2 : correctColor == MessageColor.Yellow ? 3 : 4].name, transform);
 			yield return new WaitForSeconds(8.0f);
 			Audio.PlaySoundAtTransform(MouseTrapStarts[1].name, transform);
@@ -666,8 +700,9 @@ public class WarGamesModuleScript : MonoBehaviour {
 			}
 
 		}
-		else //GreyGoose
+		else if (VoiceIndex == 1) //GreyGoose
         {
+			DebugLog("Message given by GreyGoose.");
 			Audio.PlaySoundAtTransform(GreyGooseStarts[correctColor == MessageColor.Green ? 2 : correctColor == MessageColor.Yellow ? 3 : 4].name, transform);
 			yield return new WaitForSeconds(10.0f);
 			Audio.PlaySoundAtTransform(GreyGooseStarts[1].name, transform);
