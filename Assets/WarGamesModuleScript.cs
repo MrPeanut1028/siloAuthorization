@@ -60,6 +60,13 @@ public class WarGamesModuleScript : MonoBehaviour {
 		Yellow, 
 		Green
     }
+	private enum VoiceActor
+    {
+		MouseTrap, 
+		GreyGoose,
+		BlackHole
+    }
+	private VoiceActor[] baseActors = new VoiceActor[3] { VoiceActor.MouseTrap, VoiceActor.GreyGoose, VoiceActor.BlackHole};
 	private readonly string Numbers = "0123456789";
 	private readonly string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	private readonly string AlphabetandNumbers = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -76,6 +83,8 @@ public class WarGamesModuleScript : MonoBehaviour {
 	private ResponseType correctResponse;
 	private MessageColor correctColor;
 	private Status mStatus = Status.Busy;
+	private VoiceActor Voice;
+	static bool siloRunning = false;
 	bool TimeModeActive;
 	bool ZenModeActive;
 
@@ -227,11 +236,16 @@ public class WarGamesModuleScript : MonoBehaviour {
 
 	void CalculateConditions()
     {
+		//reset some stuff
 		outAuthCode = 0;
 		for (int i = 0; i < 4; i++)
 			ConfirmDigits[i].text = "0";
 		for (int i = 0; i < 10; i++)
 			Digits[i].text = "0";
+
+		//voice actor
+		Voice = baseActors[Rand.Range(0, baseActors.Count())];
+		DebugLog("Your voice actor is " + Voice.ToString() + ".");
 
 		//siloID
 		siloID = "";
@@ -667,13 +681,27 @@ public class WarGamesModuleScript : MonoBehaviour {
 			DebugLog("Skip requested, 30 seconds until message.");
 			yield return new WaitForSeconds(30.0f);
 		}
-        int VoiceIndex = Rand.Range(0, 3);
+		if (siloRunning)
+        {
+			bool exit = false;
+			while (!exit)
+            {
+				DebugLog("Another module is giving a message, waiting until it and possibly others are finished.");
+				while (siloRunning) yield return null;
+				yield return new WaitForSeconds(moduleID * 0.2f);
+				if (!siloRunning)
+					exit = true;
+			}
+			DebugLog("This module is ready to go, giving message.");
+			siloRunning = true;
+			yield return new WaitForSeconds(2.0f);
+        }
+		siloRunning = true;
 		mStatus = Status.Busy;
 		Audio.PlaySoundAtTransform(ModuleSounds[3].name, transform);
 		yield return new WaitForSeconds(2.0f);
-		if (VoiceIndex == 0) //MouseTrap
+		if (Voice == VoiceActor.MouseTrap)
         {
-			DebugLog("Message given by MouseTrap.");
 			Audio.PlaySoundAtTransform(MouseTrapStarts[correctColor == MessageColor.Green ? 2 : correctColor == MessageColor.Yellow ? 3 : 4].name, transform);
 			yield return new WaitForSeconds(8.0f);
 			Audio.PlaySoundAtTransform(MouseTrapStarts[1].name, transform);
@@ -699,9 +727,8 @@ public class WarGamesModuleScript : MonoBehaviour {
 			}
 
 		}
-		else if (VoiceIndex == 1) //GreyGoose
+		else if (Voice == VoiceActor.GreyGoose)
         {
-			DebugLog("Message given by GreyGoose.");
 			Audio.PlaySoundAtTransform(GreyGooseStarts[correctColor == MessageColor.Green ? 2 : correctColor == MessageColor.Yellow ? 3 : 4].name, transform);
 			yield return new WaitForSeconds(10.0f);
 			Audio.PlaySoundAtTransform(GreyGooseStarts[1].name, transform);
@@ -728,7 +755,6 @@ public class WarGamesModuleScript : MonoBehaviour {
 		}
 		else //BlackHole
         {
-			DebugLog("Message given by BlackHole.");
 			Audio.PlaySoundAtTransform(BlackHoleStarts[correctColor == MessageColor.Green ? 2 : correctColor == MessageColor.Yellow ? 3 : 4].name, transform);
 			yield return new WaitForSeconds(10.0f);
 			Audio.PlaySoundAtTransform(BlackHoleStarts[1].name, transform);
@@ -756,6 +782,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 
 		activeDigits = new bool[14] { true, true, true, true, true, true, true, true, true, true, true, true, true, true };
 		mStatus = Status.Input;
+		siloRunning = false;
     }
 
 	public readonly string TwitchHelpMessage = "Receive the message with !{0} receive. Send the message with !{0} send. Change the displays with !{0} (display) (input). Valid displays are Silo, Message, Location, and Authentication/Auth.";
