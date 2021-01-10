@@ -648,13 +648,10 @@ public class WarGamesModuleScript : MonoBehaviour {
 				else if (TimeModeActive)
                 {
 					DebugLog("Time Mode detected, waiting " + (startTime - timeFactor).ToString() + " seconds, or when the bomb time goes below " + timeFactor.ToString() + " seconds.");
-					bool exit = false;
 					float timeElapsed = 0f;
-					while (!exit)
+					while (startTime - timeElapsed > timeFactor && timeFactor < Bomb.GetTime() && !tpAutosolve)
                     {
 						timeElapsed += Time.deltaTime;
-						if (startTime - timeElapsed < timeFactor || timeFactor > Bomb.GetTime() || !tpAutosolve)
-							exit = true;
 						yield return new WaitForSeconds(0.01f);
                     }
                 }
@@ -888,6 +885,7 @@ public class WarGamesModuleScript : MonoBehaviour {
 	IEnumerator TwitchHandleForcedSolve()
     {
 		tpAutosolve = true;
+		DebugLog("TP Autosolver in use.");
 		while (mStatus != Status.Input)
 		{
 			if (mStatus == Status.Start)
