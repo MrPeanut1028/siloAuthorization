@@ -950,6 +950,7 @@ public class WarGamesModuleScript : MonoBehaviour {
             }
         }
         SendButton.OnInteract();
+        while (mStatus != Status.Solved) yield return true;
         yield break;
     }
 }
