@@ -86,8 +86,8 @@ public class WarGamesModuleScript : MonoBehaviour {
     private Status mStatus = Status.Busy;
     private VoiceActor Voice;
     static Coroutine siloHandler;
-    static List<int> moduleRuns = new List<int> { 0 };
-    static int siloRun = 0;
+    static List<int> moduleRuns = new List<int>();
+    static bool siloRun = false;
     bool TimeModeActive;
     bool ZenModeActive;
 
@@ -110,6 +110,11 @@ public class WarGamesModuleScript : MonoBehaviour {
         ReceiveButton.OnInteract += delegate () { BeginModule(); return false; };
         SendButton.OnInteract += delegate () { SubmitModule(); return false; };
         Module.OnActivate += Activate;
+        if (siloHandler != null)
+            StopCoroutine(siloHandler);
+        siloHandler = null;
+        moduleRuns.Clear();
+        siloRun = false;
 
         waitingLight.range *= transform.lossyScale.x;
         busyLight.range *= transform.lossyScale.x;
@@ -201,7 +206,7 @@ public class WarGamesModuleScript : MonoBehaviour {
         mStatus = Status.Busy;
         SendButton.AddInteractionPunch(0.2f);
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
-        Log(VerifySolution(true) ? "Correct, module solved." : "Incorrect, strike."); 
+        Log(VerifySolution(true) ? "Correct, module solved." : tpAutosolve ? "Autosolver in use, incorrect Location or Authentication is bypassed. Module solved." : "Incorrect, strike."); 
     }
 
     string ToChar(string input, int shift)
@@ -475,9 +480,7 @@ public class WarGamesModuleScript : MonoBehaviour {
             }
             else if (i < 7)
             {
-                if (!correct[1] && tpAutosolve)
-                    Digits[i].text = "BYPA"[i - 3].ToString();
-                else if (correct[1])
+                if (correct[1])
                     Digits[i].text = GoodLetters[i].ToString();
                 else
                     Digits[i].text = BadLetters[i].ToString();
@@ -502,7 +505,7 @@ public class WarGamesModuleScript : MonoBehaviour {
             }
             yield return new WaitForSeconds(0.5f);
         }
-        if (!correct[0] || !correct[1] || !(correct[2] || tpAutosolve) || !(correct[3] || tpAutosolve))
+        if (!correct[0] || !correct[1] || !(correct[2] || tpAutosolve) || !(correct[3]|| tpAutosolve))
         {
             Audio.PlaySoundAtTransform(ModuleSounds[2].name, transform);
             yield return new WaitForSeconds(4.5f);
@@ -687,8 +690,10 @@ public class WarGamesModuleScript : MonoBehaviour {
             yield return new WaitForSeconds(30.0f);
         }
         moduleRuns.Add(moduleID);
-        while (siloRun != moduleID)
+        DebugLog("Module added to queue, waiting to be called.");
+        while (moduleRuns.Contains(moduleID))
             yield return null;
+        DebugLog("moduleID is up, time to start the message.");
         mStatus = Status.Busy;
         Audio.PlaySoundAtTransform(ModuleSounds[3].name, transform);
         yield return new WaitForSeconds(2.0f);
@@ -774,22 +779,41 @@ public class WarGamesModuleScript : MonoBehaviour {
 
         activeDigits = new bool[14] { true, true, true, true, true, true, true, true, true, true, true, true, true, true };
         mStatus = Status.Input;
-        siloRun = 0;
+        siloRun = false;
+        DebugLog("Read has finished.");
     }
 
     IEnumerator ModuleHandler()
     {
+        Debug.Log("<Silo Authorization Handler> Coroutine started, waiting for the first module.");
         while (true)
         {
-            while (moduleRuns.Count() == 1) 
+            while (moduleRuns.Count() < 1) 
                 yield return null;
+            Debug.Log("<Silo Authorization Handler> A module needs to be sent, proceeding.");
             moduleRuns.Sort();
-            siloRun = moduleRuns[Rand.Range(1, moduleRuns.Count())];
-            moduleRuns.Remove(siloRun);
-            while (siloRun != 0) 
+            siloRun = true;
+            int moduleRunning = moduleRuns[Rand.Range(0, moduleRuns.Count())];
+            moduleRuns.Remove(moduleRunning);
+            Debug.Log("<Silo Authorization Handler> Allowing moduleID #" + moduleRunning.ToString() + " to be run, waiting for it to be finished.");
+            LogModules();
+            while (siloRun) 
                 yield return null;
-            yield return new WaitForSeconds(Rand.Range(8, 41) * 0.25f);
+            if (!tpAutosolve)
+            {
+                Debug.Log("<Silo Authorization Handler> Module is done reading, entering mandatory waiting period.");
+                yield return new WaitForSeconds(Rand.Range(8, 41) * 0.25f);
+                Debug.Log("<Silo Authorization Handler> Wait is over, restarting loop.");
+            }
         }
+    }
+
+    void LogModules()
+    {
+        if (moduleRuns.Count() < 1)
+            Debug.Log("<Silo Authorization Handler> No other modules need to be read.");
+        else
+            Debug.Log("<Silo Authorization Handler> Other modules waiting to be given: " + string.Join(", ", moduleRuns.Select(i => i.ToString()).ToArray()) + ".");
     }
 
     public readonly string TwitchHelpMessage = "Receive the message with !{0} receive. Send the message with !{0} send. Change the displays with !{0} (display) (input). Valid displays are Silo, Message, Location, and Authentication/Auth.";
