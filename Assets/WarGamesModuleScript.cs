@@ -33,6 +33,8 @@ public class WarGamesModuleScript : MonoBehaviour {
     public AudioClip[] GreyGooseStarts;
     public AudioClip[] BlackHoleSounds;
     public AudioClip[] BlackHoleStarts;
+    public AudioClip[] GoldFishSounds;
+    public AudioClip[] GoldFishStarts;
     public AudioClip[] ModuleSounds;
 
     //buttons
@@ -65,9 +67,10 @@ public class WarGamesModuleScript : MonoBehaviour {
     {
         MouseTrap, 
         GreyGoose,
-        BlackHole
+        BlackHole,
+        GoldFish
     }
-    private VoiceActor[] baseActors = new VoiceActor[3] { VoiceActor.MouseTrap, VoiceActor.GreyGoose, VoiceActor.BlackHole};
+    private VoiceActor[] baseActors = new VoiceActor[4] { VoiceActor.MouseTrap, VoiceActor.GreyGoose, VoiceActor.BlackHole, VoiceActor.GoldFish};
     private readonly string Numbers = "0123456789";
     private readonly string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private readonly string AlphabetandNumbers = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -78,7 +81,8 @@ public class WarGamesModuleScript : MonoBehaviour {
     private bool[] correctParts = new bool[3] { false, false, false }; //in order, they are 1st part, 2nd part, authenication
     private string[] outMessages = new string[4] { "", "", "", "" }; //in order they are 1st part end, dec, 2nd part end, dec
 #pragma warning restore IDE0044
-    private string siloID = ""; 
+    private string siloID = "";
+    private int voiceIndex = -1;
     private int outAuthCode;
     private int ansAuthCode;
     private ResponseType correctResponse;
@@ -90,6 +94,7 @@ public class WarGamesModuleScript : MonoBehaviour {
     static bool siloRun = false;
     bool TimeModeActive;
     bool ZenModeActive;
+    DateTime today;
 
     //TP
     bool tpAutosolve = false;
@@ -254,7 +259,18 @@ public class WarGamesModuleScript : MonoBehaviour {
             Digits[i].text = "0";
 
         //voice actor
-        Voice = baseActors[Rand.Range(0, baseActors.Count())];
+        today = DateTime.Today;
+        if (voiceIndex == -1)
+        {
+            voiceIndex = Rand.Range(0, baseActors.Count());
+            if (today.Month == 4 && today.Day == 1)
+            {
+                voiceIndex = 3;
+                Voice = VoiceActor.GoldFish;
+            }
+            else
+                Voice = baseActors[voiceIndex];
+        }
         DebugLog("Your voice actor is " + Voice.ToString() + ".");
 
         //siloID
@@ -696,7 +712,7 @@ public class WarGamesModuleScript : MonoBehaviour {
         DebugLog("moduleID is up, time to start the message.");
         mStatus = Status.Busy;
         Audio.PlaySoundAtTransform(ModuleSounds[3].name, transform);
-        yield return new WaitForSeconds(2.0f);
+        yield return new WaitForSeconds(2.2f);
         if (Voice == VoiceActor.MouseTrap)
         {
             Audio.PlaySoundAtTransform(MouseTrapStarts[correctColor == MessageColor.Green ? 2 : correctColor == MessageColor.Yellow ? 3 : 4].name, transform);
@@ -750,7 +766,7 @@ public class WarGamesModuleScript : MonoBehaviour {
                 yield return new WaitForSeconds(0.8f);
             }
         }
-        else //BlackHole
+        else if (Voice == VoiceActor.BlackHole)//BlackHole
         {
             Audio.PlaySoundAtTransform(BlackHoleStarts[correctColor == MessageColor.Green ? 2 : correctColor == MessageColor.Yellow ? 3 : 4].name, transform);
             yield return new WaitForSeconds(10.0f);
@@ -773,6 +789,33 @@ public class WarGamesModuleScript : MonoBehaviour {
             {
 
                 Audio.PlaySoundAtTransform(BlackHoleSounds[int.Parse(outAuthCode.ToString("0000")[i].ToString())].name, transform);
+                yield return new WaitForSeconds(0.9f);
+            }
+        }
+        else //GoldFish
+        {
+            Audio.PlaySoundAtTransform(GoldFishStarts[correctColor == MessageColor.Green ? 2 : correctColor == MessageColor.Yellow ? 3 : 4].name, transform);
+            yield return new WaitForSeconds(10.0f);
+            Audio.PlaySoundAtTransform(GoldFishStarts[1].name, transform);
+            yield return new WaitForSeconds(2.0f);
+            for (int i = 0; i < 4; i++)
+            {
+                Audio.PlaySoundAtTransform(GoldFishSounds[ToNum(outMessages[0][i].ToString(), 0)].name, transform);
+                yield return new WaitForSeconds(0.9f);
+            }
+            yield return new WaitForSeconds(0.4f);
+            for (int i = 0; i < 4; i++)
+            {
+                Audio.PlaySoundAtTransform(GoldFishSounds[ToNum(outMessages[2][i].ToString(), 0)].name, transform);
+                yield return new WaitForSeconds(0.9f);
+            }
+            yield return new WaitForSeconds(0.2f);
+            Audio.PlaySoundAtTransform(GoldFishStarts[0].name, transform);
+            yield return new WaitForSeconds(2.0f);
+            for (int i = 0; i < 4; i++)
+            {
+
+                Audio.PlaySoundAtTransform(GoldFishSounds[int.Parse(outAuthCode.ToString("0000")[i].ToString())].name, transform);
                 yield return new WaitForSeconds(0.9f);
             }
         }
